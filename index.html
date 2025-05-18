@@ -1,0 +1,173 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Alien Pop!</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background-color: #111;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .game-container {
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      margin: 10px 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 20px 0;
+    }
+
+    .alien {
+      background-color: green;
+      border-radius: 50%;
+      padding-bottom: 100%;
+      position: relative;
+      animation: pop 0.3s ease-out;
+    }
+
+    @keyframes pop {
+      from { transform: scale(0); }
+      to { transform: scale(1); }
+    }
+
+    .alien:after {
+      content: '👽';
+      position: absolute;
+      top: 25%;
+      left: 25%;
+      font-size: 2em;
+    }
+
+    button {
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      margin: 5px;
+    }
+
+    button:hover {
+      background: #218838;
+    }
+
+    .highscore {
+      margin-top: 10px;
+      font-size: 0.9em;
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <h1>👽 Alien Pop!</h1>
+    <div class="stats">
+      <span>Score: <span id="score">0</span></span>
+      <span>Time: <span id="time">30</span>s</span>
+    </div>
+    <div class="grid" id="grid"></div>
+    <div class="buttons">
+      <button id="startBtn">Start Game</button>
+      <button id="restartBtn" style="display:none;">Play Again</button>
+    </div>
+    <div class="highscore">
+      High Score: <span id="highScore">0</span>
+    </div>
+  </div>
+
+  <!-- Sound embedded as Base64 -->
+  <audio id="popSound" preload="auto">
+    <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=" type="audio/wav">
+    Your browser does not support the audio element.
+  </audio>
+
+  <script>
+    const grid = document.getElementById('grid');
+    const scoreEl = document.getElementById('score');
+    const timeEl = document.getElementById('time');
+    const startBtn = document.getElementById('startBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const highScoreEl = document.getElementById('highScore');
+    const popSound = document.getElementById('popSound');
+
+    let score = 0;
+    let timeLeft = 30;
+    let timer;
+    let alienTimeout;
+    let highScore = localStorage.getItem('alienPopHighScore') || 0;
+
+    highScoreEl.textContent = highScore;
+
+    function spawnAlien() {
+      const alien = document.createElement('div');
+      alien.classList.add('alien');
+      alien.addEventListener('click', () => {
+        score++;
+        scoreEl.textContent = score;
+        popSound.currentTime = 0;
+        popSound.play();
+        alien.remove();
+      });
+
+      grid.innerHTML = '';
+      grid.appendChild(alien);
+
+      alienTimeout = setTimeout(() => {
+        alien.remove();
+      }, 1000);
+    }
+
+    function startGame() {
+      score = 0;
+      timeLeft = 30;
+      scoreEl.textContent = score;
+      timeEl.textContent = timeLeft;
+      startBtn.style.display = 'none';
+      restartBtn.style.display = 'none';
+
+      timer = setInterval(() => {
+        timeLeft--;
+        timeEl.textContent = timeLeft;
+
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          clearTimeout(alienTimeout);
+          grid.innerHTML = '';
+          if (score > highScore) {
+            highScore = score;
+            localStorage.setItem('alienPopHighScore', highScore);
+          }
+          highScoreEl.textContent = highScore;
+          restartBtn.style.display = 'inline-block';
+        } else {
+          spawnAlien();
+        }
+      }, 1000);
+    }
+
+    startBtn.addEventListener('click', startGame);
+    restartBtn.addEventListener('click', startGame);
+  </script>
+</body>
+</html>
